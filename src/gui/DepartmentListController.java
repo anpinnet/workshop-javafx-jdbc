@@ -25,8 +25,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.entities.Department;
 import model.services.DepartmentService;
+import gui.listeners.DataChangeListener;
 
-public class DepartmentListController implements Initializable {
+public class DepartmentListController implements Initializable, DataChangeListener {
 	
 	private DepartmentService service;
 	
@@ -85,6 +86,7 @@ public class DepartmentListController implements Initializable {
 			DepartmentFormController controller = loader.getController();
 			controller.setDepartment(obj);
 			controller.setDepartmentService(new DepartmentService());
+			controller.subscribeDataChangeListener(this);
 			controller.updateFormData();
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Enter Department data");
@@ -98,5 +100,9 @@ public class DepartmentListController implements Initializable {
 			Alerts.showAlert("IO Exception", "Error loader view", e.getMessage(), AlertType.ERROR);
 		}
 	}
-	
+
+	@Override
+	public void onDataChanged() {
+		updateTableView();		
+	}	
 }
