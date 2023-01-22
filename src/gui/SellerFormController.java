@@ -1,33 +1,33 @@
 package gui;
 
 import java.net.URL;
-import java.util.ResourceBundle;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 
+import db.DbException;
 import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Constraints;
 import gui.util.Utils;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.event.ActionEvent;
-import model.entities.Department;
-import model.services.DepartmentService;
+import model.entities.Seller;
 import model.exceptions.ValidationException;
-import db.DbException;
+import model.services.SellerService;
 
-public class DepartmentFormController implements Initializable {
+public class SellerFormController implements Initializable {
 	
-	private Department entity;
+	private Seller entity;
 	
-	private DepartmentService service;
+	private SellerService service;
 	
 	private List<DataChangeListener> dataChangeListeners = new ArrayList<>();
 	
@@ -46,11 +46,11 @@ public class DepartmentFormController implements Initializable {
 	@FXML
 	private Button btCancel;
 	
-	public void setDepartment(Department entity) {
+	public void setSeller(Seller entity) {
 		this.entity = entity;
 	}
 	
-	public void setDepartmentService(DepartmentService service) {
+	public void setSellerService(SellerService service) {
 		this.service = service;
 	}
 	
@@ -58,7 +58,6 @@ public class DepartmentFormController implements Initializable {
 		dataChangeListeners.add(listener);
 	}
 	
-	@FXML
 	public void onBtSaveAction(ActionEvent event) {
 		if (entity == null) {
 			throw new IllegalStateException("Entity was null");
@@ -68,7 +67,7 @@ public class DepartmentFormController implements Initializable {
 		}
 		try {
 			entity = getFormData();
-			service.saveOrUpdate(entity);
+			service.saveOrUnpdate(entity);
 			notifyDataChangeListeners();
 			Utils.currentStage(event).close();
 		}
@@ -79,19 +78,20 @@ public class DepartmentFormController implements Initializable {
 			Alerts.showAlert("Error save object", null, e.getMessage(), AlertType.ERROR);
 		}
 	}
-	
-	private void notifyDataChangeListeners() {
-		for (DataChangeListener listener : dataChangeListeners) {
-			listener.onDataChanged();
+
+	private void setErrorMessages(Map<String, String> errors) { 
+		Set<String> fields = errors.keySet();
+		if (fields.contains("name")) {
+			labelErrorName.setText(errors.get("name"));
 		}
 	}
-	
-	private Department getFormData() {
-		Department obj = new Department();
+
+	private Seller getFormData() { 
+		Seller obj = new Seller();
 		ValidationException exception = new ValidationException("Validation error");
 		obj.setId(Utils.tryParseToInt(txtId.getText()));
-		if (txtName.getText() == null || txtName.getText().trim().equals("")) {
-			exception.addError("name", "Field can´t be empty");
+		if (txtName == null || txtName.getText().trim().equals(" ")) {
+			exception.addError("name", "Filed can´t be empty");
 		}
 		obj.setName(txtName.getText());
 		if (exception.getErrors().size() > 0) {
@@ -100,16 +100,21 @@ public class DepartmentFormController implements Initializable {
 		return obj;
 	}
 
-	@FXML
+	private void notifyDataChangeListeners() {
+		for (DataChangeListener listener : dataChangeListeners) {
+			listener.onDataChanged();
+		}		
+	}	
+	
 	public void onBtCancelAction(ActionEvent event) {
 		Utils.currentStage(event).close();
 	}
 
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
-			initializeNodes();	
+		initializeNodes();		
 	}
-	
+
 	private void initializeNodes() {
 		Constraints.setTextfieldInteger(txtId);
 		Constraints.setTextFieldMaxLength(txtName, 30);
@@ -121,12 +126,6 @@ public class DepartmentFormController implements Initializable {
 		}
 		txtId.setText(String.valueOf(entity.getId()));
 		txtName.setText(entity.getName());
-	}
-	
-	private void setErrorMessages(Map<String, String> errors) {
-		Set<String> fields = errors.keySet();
-		if (fields.contains("name")) {
-			labelErrorName.setText(errors.get("name"));
-		}
-	}
+	}	
+
 }
